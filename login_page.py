@@ -1,11 +1,20 @@
 import streamlit as st
-import pandas as pd
+
+from pymongo.mongo_client import MongoClient
+from pymongo.server_api import ServerApi
+import urllib.parse
+
+username = urllib.parse.quote_plus(st.secrets.MONGO_DB_USERNAME)
+password = urllib.parse.quote_plus(st.secrets.MONGO_DB_PASSWORD)
+
+client = MongoClient(f'mongodb+srv://{username}:{password}@my-cluster.k0gdeoi.mongodb.net/?retryWrites=true&w=majority&appName=my-cluster', server_api=ServerApi('1'))
+database = client[st.secrets.MONGO_DB_DBNAME]
+collection = database[st.secrets.MONGO_DB_COLLECTION_NAME]
 
 def login_user_button_clicked(username, password):
-    user_data_sheets_url = f"https://docs.google.com/spreadsheets/d/{st.secrets.USER_DATA_SHEETS_ID}/edit#gid=0".replace('/edit#gid=', '/export?format=csv&gid=')
-    username_pass_df = pd.read_csv(user_data_sheets_url)
-    if username in username_pass_df['Username'].to_list():
-        if str(username_pass_df['Password'][username_pass_df['Username'][username_pass_df['Username']==username.strip()].index[0]]) == str(password):
+    
+    if collection.count_documents({'username':username})!=0:
+        if collection.find_one({'username':username})['password'] == password:
             st.session_state.logged_in = True
             st.success("User logged in Successfully.")
         else:
