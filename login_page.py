@@ -16,6 +16,7 @@ def login_user_button_clicked(username, password):
     if collection.count_documents({'username':username})!=0:
         if collection.find_one({'username':username})['password'] == password:
             st.session_state.logged_in = True
+            st.session_state.username = username
             st.success("User logged in Successfully.")
         else:
             st.error('Invalid Credentials')
